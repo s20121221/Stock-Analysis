@@ -1,14 +1,48 @@
 .navbar .nav-link {
-    margin: 0 10px 0 10px;
-    color: #ffffff;
-    font-size: 20px;
+  margin: 0 10px 0 10px;
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.navbar {
+  padding: 0;
 }
 
 .container-fluid {
-    background: #1E90FF;
+  background: #1e90ff;
 }
 
-html, body {
-  height: 100%;/* 滿版 */
-  background-color: #f8f9fa;/* 背景色 */
+html,
+body {
+  height: 100%;
+  /* 滿版 */
+  background-color: #dedede6f;
+  /* 背景色 */
+}
+
+.grid-row-Backtesting {
+  display: grid;
+  grid-template-rows: 1fr 2fr;
+  background: #dedede6f;
+  height: 100%;
+}
+
+.grid-row-Backtesting .item {
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-row-Backtesting .item1 {
+  margin-bottom: 10px;
+}
+
+.grid-row-Backtesting .item2 {
+  margin-top: 10px;
+}
+
+.content {
+  height: calc(100vh - 156px);
+  margin: 50px 50px 50px 50px;
 }
