@@ -1,0 +1,14 @@
+.navbar .nav-link {
+    margin: 0 10px 0 10px;
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.container-fluid {
+    background: #1E90FF;
+}
+
+html, body {
+  height: 100%;/* 滿版 */
+  background-color: #f8f9fa;/* 背景色 */
+}
