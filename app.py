@@ -5,7 +5,6 @@ from blueprints.TrendChart.route import TrendChart_bp
 
 def create_app():
     app = Flask(__name__)
-    app.secret_key = '請換成自己的隨機字串'
     # 註冊 Blueprint
     app.register_blueprint(Setting_bp)
     app.register_blueprint(Sigin_bp)
@@ -14,7 +13,6 @@ def create_app():
     @app.route('/')
     def home():
         return render_template('base.html')
-    
     return app
 
 if __name__ == "__main__":
