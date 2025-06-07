@@ -20,3 +20,4 @@ json_data = stock_data.json()
 df = pd.DataFrame(data=json_data['data'],
                   columns=json_data['fields'])
 print(tabulate(df.tail(), headers='keys', tablefmt='pretty', showindex=False))
+print('hello')
