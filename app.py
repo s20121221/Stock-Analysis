@@ -1,22 +1,21 @@
 from flask import Flask, render_template
+from blueprints.Setting.route import Setting_bp
+from blueprints.Sigin.route import Sigin_bp
+from blueprints.TrendChart.route import TrendChart_bp
 
-app = Flask(__name__)
-
-@app.route("/")
-def Home():
-    return render_template("Base.html")
-
-@app.route("/TrendChart")
-def TrendChart():
-    return render_template("TrendChart.html")
-
-@app.route("/Setting")
-def Setting():
-    return render_template("Setting.html")
-
-@app.route("/Sigin")
-def Sigin():
-    return render_template("Sigin.html")
+def create_app():
+    app = Flask(__name__)
+    app.secret_key = '請換成自己的隨機字串'
+    # 註冊 Blueprint
+    app.register_blueprint(Setting_bp)
+    app.register_blueprint(Sigin_bp)
+    app.register_blueprint(TrendChart_bp)
+    
+    @app.route('/')
+    def home():
+        return render_template('base.html')
+    
+    return app
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    create_app().run(debug=True)
