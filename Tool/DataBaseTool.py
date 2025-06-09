@@ -84,7 +84,7 @@ class DataBaseTool:
                 name TEXT NOT NULL,
                 industry TEXT,
                 capital INTEGER,
-                market_value INTEGER,
+                mValue INTEGER,
                 last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )""",
             """CREATE TABLE IF NOT EXISTS daily_data (
