@@ -1,40 +1,10 @@
-{% extends "base.html" %} {% block content %}
-<div class="content">
-    <div class="grid-row-Backtesting">
-        <!-- 上方的div -->
-        <div class="item item1"></div>
+{% extends "base.html" %}
 
-        <!-- 下方的div -->
-        <div class="item item2">
-            <form class="w-50">
-                <!-- 股票代碼 -->
-                <div class="row mb-3 align-items-center">
-                    <label for="stockCode" class="col-sm-4 col-form-label">股票代碼</label>
-                    <div class="col-sm-8">
-                        <input type="text" class="form-control" id="stockCode" value="2330" />
-                    </div>
-                </div>
+{% block content %}
+  <h2>這是 Backtesting 的內容</h2>
+  <button id="btn-alert" class="btn btn-primary">彈出 alert</button>
 
-                <!-- 資金 -->
-                <div class="mb-3">
-                    <label for="capital" class="form-label">資金</label>
-                    <input type="text" id="capital" name="capital" class="form-control" placeholder="請輸入資金" />
-                </div>
-
-                <!-- 回測期間 -->
-                <div class="mb-3">
-                    <label for="period" class="form-label">回測期間</label>
-                    <input type="date" class="form-control" id="period" />
-                </div>
-
-                <!-- 按鈕 -->
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-success">回測分析</button>
-                </div>
-            </form>
-        </div>
-
-        <script></script>
-        {% endblock %}
-    </div>
-</div>
+  <script>
+    
+  </script>
+{% endblock %}
