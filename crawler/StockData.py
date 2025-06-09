@@ -1,3 +1,4 @@
+# 未使用此程式碼，僅供測試yfinance套件
 import yfinance as yf
 import datetime as dt
 import pandas as pd
