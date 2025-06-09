@@ -17,6 +17,10 @@
 
 {# ---------- 置底的腳本區 ---------- #}
 {% block extra_scripts %}
+<script>
+    const trendChartPath = "{{ url_for('static', filename='js/trendchart.js') }}";
+    alert("載入的 trendchart.js 路徑：\n" + trendChartPath);
+  </script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="{{ url_for('static', filename='js/trendchart.js') }}"></script>
 {% endblock %}    
