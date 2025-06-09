@@ -102,12 +102,20 @@ if __name__ == "__main__":
     # 插入日線資料
     crawler.update_daily_data("2330.TW", )
     '''
+
+    # 同時抓，不要同時抓太多會亂掉，只能抓取台股
     crawler = StockCrawler()
     stock_list = [
-        "2330.TW",  # 台積電
-        "2317.TW",  # 鴻海
-        "2454.TW",  # 聯發科
-        "0056.TW",  # 元大高股息
+        # "2330.TW",  # 台積電
+        # "2317.TW",  # 鴻海
+
+        # "2454.TW",  # 聯發科
+        # "0056.TW",  # 元大高股息
+
+        "0050.TW",  # 元大台灣50
+        "0053.TW",  # 元大電子
+
+        "00962.TW"  # 台股AI優息動能
     ]
 for stock in stock_list:
     if crawler.update_company_info(stock):
