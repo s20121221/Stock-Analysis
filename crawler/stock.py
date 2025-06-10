@@ -1,129 +1,146 @@
-import sys
 import os
+import sys
+import requests
+import datetime
+from typing import List, Dict, Any
+from bs4 import BeautifulSoup
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import yfinance as yf
-from datetime import datetime, timedelta
-from Tool.DataBaseTool import DataBaseTool
-import logging
-import colorama
-from colorama import init, Fore, Style
-init(autoreset=True)
+from Tool.DataBaseTool import DataBaseTool  # 引入自製資料庫操作工具
+
+db = DataBaseTool("db/stock.db")
 
 
-class StockCrawler:
-    def __init__(self):
-        self.db = DataBaseTool()
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(__name__)
+def fetch_company_info(stock_id: str) -> Dict[str, Any]:
+    """
+    爬取個股基本資料（名稱、產業、市值、股本）
+    :param stock_id: 股票代號（例如 2330）
+    :return: 股票公司資料 dict
+    """
+    url = f"https://tw.stock.yahoo.com/quote/{stock_id}/profile"
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
 
-    # 使用yfiance抓數據
-    def fetch_stock_data(self, ticker, start_date, end_date):
-        try:
-            stock = yf.Ticker(ticker)
-            return stock.history(start=start_date, end=end_date)
-        except Exception as e:
-            self.logger.error(f"Failed to fetch data for {ticker}: {e}")
-            return None
+    try:
+        res = requests.get(url, headers=headers, timeout=10)
+        res.raise_for_status()
 
-    # 更新股票日線數據
-    def update_daily_data(self, ticker, days=365):
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=days)
+        soup = BeautifulSoup(res.text, "html.parser")
 
-        # 檢查資料庫最新日期
-        self.db.create_connection()
-        latest_date = self.db.fetch_data(
-            "SELECT MAX(date) FROM daily_data WHERE stock_id = ?",
-            (ticker,)
-        )
+        # 取得公司名稱
+        name_tag = soup.find("h1", {"class": "Fz(20px)"})
+        name = name_tag.text.strip() if name_tag else "N/A"
 
-        if latest_date and latest_date['data'][0][0]:
-            start_date = datetime.strptime(
-                latest_date['data'][0][0], '%Y-%m-%d'
-            )
+        # 擷取其他欄位
+        table = soup.find("table")
+        rows = table.find_all("tr") if table else []
 
-        # 抓yfinance資料
-        data = self.fetch_stock_data(ticker, start_date, end_date)
-        if data is None or data.empty:
-            self.logger.warning(f"{ticker} 沒有新資料")
-            return False
+        industry = ""
+        capital = 0
+        m_value = 0
 
-        # 存入資料庫
-        query = """INSERT OR IGNORE INTO daily_data
-                   (stock_id, date, open_price, high_price, low_price,
-                    close_price, volume)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)"""
-        records = [
-            (
-                ticker,
-                date.strftime('%Y-%m-%d'),
-                row['Open'],                # 開盤價
-                row['High'],                # 最高價
-                row['Low'],                 # 最低價
-                row['Close'],               # 收盤價
-                row['Volume']               # 成交量
-            )
-            for date, row in data.iterrows()
-        ]
-        self.db.execute_query(query, records, many=True)
-        self.db.close_connection()
-        self.logger.info(f"已更新 {len(records)}  筆日線資料 {ticker}")
-        return True
+        for row in rows:
+            th = row.find("th")
+            td = row.find("td")
+            if th and td:
+                key = th.text.strip()
+                val = td.text.strip().replace(",", "")
+                if "產業類別" in key:
+                    industry = val
+                elif "股本" in key and "億" in val:
+                    capital = int(float(val.replace("億", "")) * 10000)
+                elif "市值" in key and "億" in val:
+                    m_value = int(float(val.replace("億", "")) * 10000)
 
-    # 更新公司資訊
-    def update_company_info(self, ticker):
-        try:
-            stock = yf.Ticker(ticker)
-            info = stock.info
+        return {
+            "stock_id": stock_id,
+            "name": name,
+            "industry": industry,
+            "capital": capital,
+            "mValue": m_value
+        }
 
-            data = (
-                ticker,
-                info.get('longName', ''),
-                info.get('industry', ''),
-                info.get('marketCap', 0),
-                info.get('enterpriseValue', 0)
-            )
+    except Exception as e:
+        print(f"[Error] 爬取公司資訊失敗：{stock_id} => {e}")
+        return {}
 
-            self.db.create_connection()
-            self.db.upsert_company_info(*data)
-            self.db.close_connection()
-            self.logger.info(f"{ticker} 公司資訊已更新")
-            return True
-        except Exception as e:
-            self.logger.error(f"公司資訊更新失敗: {e}")
-            return False
-# 抓取股票
+
+def fetch_daily_data(stock_id: str, days: int = 30) -> List[Dict[str, Any]]:
+    """
+    爬取歷史股價資料（預設近30日）
+    :param stock_id: 股票代號
+    :param days: 幾天前至今（預設30）
+    :return: 每日股價資料列表
+    """
+    end = int(datetime.datetime.now().timestamp())
+    start = int((datetime.datetime.now() - datetime.timedelta(days=days)).timestamp())
+
+    url = (
+        f"https://query1.finance.yahoo.com/v8/finance/chart/{stock_id}.TW"
+        f"?period1={start}&period2={end}&interval=1d"
+    )
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    try:
+        res = requests.get(url, headers=headers, timeout=10)
+        res.raise_for_status()
+        json_data = res.json()
+
+        result = []
+
+        chart_data = json_data.get("chart", {}).get("result", [])
+        if not chart_data:
+            raise ValueError("無效資料格式")
+
+        timestamps = chart_data[0]["timestamp"]
+        indicators = chart_data[0]["indicators"]["quote"][0]
+
+        for i, ts in enumerate(timestamps):
+            date_str = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d")
+            item = {
+                "stock_id": stock_id,
+                "date": date_str,
+                "open_price": indicators["open"][i],
+                "high_price": indicators["high"][i],
+                "low_price": indicators["low"][i],
+                "close_price": indicators["close"][i],
+                "volume": indicators["volume"][i]
+            }
+
+            # 過濾無效資料
+            if all(v is not None for v in item.values()):
+                result.append(item)
+
+        return result
+
+    except Exception as e:
+        print(f"[Error] 爬取股價資料失敗：{stock_id} => {e}")
+        return []
+
+
+def update_stock_data(stock_id: str, days: int = 30) -> None:
+    """
+    整合公司資訊與每日股價，並寫入資料庫
+    """
+    print(f"\n[Info] 開始更新 {stock_id}")
+
+    company = fetch_company_info(stock_id)
+    if company:
+        db.insert("company_info", company)
+
+    daily = fetch_daily_data(stock_id, days)
+    if daily:
+        db.bulk_insert_daily_data(daily)
+
+    print(f"[Info]. 完成 {stock_id} 更新\n")
+
+# 呼叫此函示 ---- > app.py
+def run_stock_crawler(stock_list, days=60):
+    for stock_id in stock_list:
+        update_stock_data(stock_id, days)
+# 測試用
 if __name__ == "__main__":
-    '''
-    單獨抓一支
-    crawler = StockCrawler()
-    # 插入公司資料
-    crawler.update_company_info("2330.TW")
-    # 插入日線資料
-    crawler.update_daily_data("2330.TW", )
-    '''
-
-    # 同時抓，不要同時抓太多會亂掉，只能抓取台股
-    crawler = StockCrawler()
-    stock_list = [
-        # "2330.TW",  # 台積電
-        # "2317.TW",  # 鴻海
-
-        # "2454.TW",  # 聯發科
-        # "0056.TW",  # 元大高股息
-
-        "0050.TW",  # 元大台灣50
-        "0053.TW",  # 元大電子
-
-        "00962.TW"  # 台股AI優息動能
-    ]
-for stock in stock_list:
-    if crawler.update_company_info(stock):
-        print(Fore.GREEN + f"{stock} 公司資訊已更新")
-    else:
-        print(Fore.RED + f"{stock} 公司資訊更新失敗")
-
-    if crawler.update_daily_data(stock, days=365):
-        print(Fore.GREEN + f"{stock} 日線資料已更新")
-    else:
-        print(Fore.RED +f"{stock} 沒有新日線資料")
+    stock_list = ["2330", "2317", "2603", "2882"]
+    run_stock_crawler(stock_list, days=60)
