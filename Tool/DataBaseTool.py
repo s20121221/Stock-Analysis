@@ -11,7 +11,7 @@ class DataBaseTool:
         初始化資料庫工具
         """
         self.db_path = str(db_path)
-        self._initialize_db()
+        # self._initialize_db()
 
     def _get_conn(self) -> sqlite3.Connection:
         """建立資料庫連接並啟用外鍵約束"""

@@ -4,6 +4,7 @@ import threading
 import datetime as dt
 from flask import Blueprint, render_template, request, jsonify
 from LSTM.Stock_LSTM_Code import StockPredictor
+from flask import flash
 
 Backtesting_bp = Blueprint(
     'Backtesting',
@@ -70,9 +71,11 @@ def index():
     if request.method == 'POST':
         action = request.form.get('action')
         code   = request.form.get('stockCode', '2330')
+        # 讀取使用者輸入的回測日期（字串）
+        period_str = request.form.get('period', '').strip()
+
         # 回測分析按鈕
         if action == 'backtest':
-            # 不重訓，只載入模型
             predictor = StockPredictor(
                 db_path=DB_PATH,
                 stock_id=code,
@@ -83,9 +86,24 @@ def index():
                 model_dir=model_dir
             )
             predictor.load_model()
-            nd, pred = predictor.predict_next_day()
-            next_date = nd.strftime('%Y-%m-%d')
-            prediction = f"{pred:.2f}"
+
+            # 如果有指定 period，就傳入；沒有就用預設（最後一筆日期）
+            try:
+                if period_str:
+                    # predict_next_day 內會把字串轉成 date
+                    nd, pred = predictor.predict_next_day(period_str)
+                else:
+                    nd, pred = predictor.predict_next_day()
+
+                next_date   = nd.strftime('%Y-%m-%d')
+                prediction  = f"{pred:.2f}"
+
+            except ValueError as e:
+                # 處理傳入不在範圍內或資料不足的情況
+                flash(str(e), 'danger')
+                next_date = None
+                prediction = None
+
     return render_template(
         'Backtesting.html',
         next_date=next_date,
