@@ -9,7 +9,7 @@ from torch import nn, optim
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import MinMaxScaler
 from contextlib import closing
-from typing import Union, List, Optional, Dict, Any
+from typing import Union, List, Optional, Dict, Any,Tuple
 
 # 將專案根目錄加入路徑
 HERE = os.path.dirname(__file__)
@@ -133,21 +133,44 @@ class StockPredictor:
         self.save_model()
         print(f"訓練結束，模型已保存至: {self.MODEL_PATH}")
 
-    def predict_next_day(self, last_date: Optional[dt.date] = None) -> (dt.date, float):
-        base_date = last_date if last_date is not None else self.dates[-1]
-        if not isinstance(base_date, dt.date):
-            base_date = pd.to_datetime(base_date).date()
+    def predict_next_day(
+        self,
+        target_date: Union[str, dt.date, pd.Timestamp]) -> Tuple[dt.date, float]:
+        # 1. 轉成 datetime.date
+        if not isinstance(target_date, dt.date):
+            target_date = pd.to_datetime(target_date).date()
 
-        last_feat = self.features[-self.SEQ_LEN:]
+        # 2. 確認日期存在於 self.dates 中
+        try:
+            idx = self.dates.index(target_date)
+        except ValueError:
+            raise ValueError(f"指定的日期 {target_date} 不在資料範圍內。")
+
+        # 3. 確保有足夠的歷史資料做序列
+        if idx + 1 < self.SEQ_LEN:
+            raise ValueError(
+                f"日期 {target_date} 前面至少要有 {self.SEQ_LEN} 天資料，"
+                f"目前僅有 {idx+1} 天。"
+            )
+
+        # 4. 取出從 (idx-SEQ_LEN+1) 到 idx 的 feature
+        start_idx = idx + 1 - self.SEQ_LEN
+        last_feat = self.features[start_idx: idx+1]  # shape=(SEQ_LEN, n_features)
+
+        # 5. 標準化並轉成 tensor
         last_scaled = self.dataset.feature_scaler.transform(last_feat)
-        inp = torch.tensor(last_scaled, dtype=torch.float32).unsqueeze(0).to(self.DEVICE)
+        inp = torch.tensor(last_scaled, dtype=torch.float32) \
+                .unsqueeze(0) \
+                .to(self.DEVICE)
 
+        # 6. 模型預測
         self.model.eval()
         with torch.no_grad():
-            pred_scaled = self.model(inp).cpu().numpy()
-        pred = self.dataset.target_scaler.inverse_transform(pred_scaled)[0,0]
+            pred_scaled = self.model(inp).cpu().numpy()  # shape=(1,1) or (1,n)
+        pred = self.dataset.target_scaler.inverse_transform(pred_scaled)[0, 0]
 
-        next_date = base_date + dt.timedelta(days=1)
+        # 7. 計算下一個交易日（簡化為 +1 天）
+        next_date = target_date + dt.timedelta(days=1)
         return next_date, float(pred)
 
     def save_model(self, model_path: str):

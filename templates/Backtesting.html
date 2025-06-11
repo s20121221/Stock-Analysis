@@ -20,10 +20,10 @@
         </div>
 
         <!-- 回測期間 -->
-        <div class="mb-3">
-          <label for="period" class="form-label">回測期間</label>
+         <div class="mb-3">
+          <label for="period" class="form-label">回測日期(預測指定日期格日的收盤價)</label>
           <input type="date" class="form-control" id="period" name="period" required
-            value="{{ request.form.period or '' }}" />
+                 value="{{ request.form.period or '' }}" />
         </div>
 
         <div class="d-flex justify-content-center gap-3">
@@ -54,6 +54,39 @@
     </div>
   </div>
 </div>
+
+<script>
+document.getElementById('trainBtn').addEventListener('click', function(){
+  const form = document.getElementById('backtestForm');
+  const url = "{{ url_for('Backtesting.train') }}";  // 你的 AJAX 路由
+
+  const data = new FormData(form);
+  // 顯示進度條
+  document.getElementById('trainProgress').style.display = 'block';
+
+  fetch(url, {
+    method: 'POST',
+    body: data,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(res => res.json())
+  .then(json => {
+    // 假設後端回 { progress: 100, message: '完成' }
+    document.getElementById('progressBar').style.width = json.progress + '%';
+    document.getElementById('progressBar').textContent = json.progress + '%';
+    if (json.progress >= 100) {
+      // 完成後隱藏或顯示訊息
+      alert(json.message);
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert('訓練發生錯誤');
+  });
+});
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
