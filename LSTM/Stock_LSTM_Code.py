@@ -17,7 +17,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH  = os.path.join(BASE_DIR, '..', 'db', 'stock.db')
 MODEL_DIR = os.path.join(BASE_DIR, 'stock_Model')
 
-
 STOCK_ID   = '2330.TW'
 MODEL_FILENAME = f"{STOCK_ID}.pth"
 MODEL_PATH = os.path.join(MODEL_DIR, MODEL_FILENAME)
