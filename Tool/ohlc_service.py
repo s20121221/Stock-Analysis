@@ -1,7 +1,7 @@
 import pandas as pd
 from typing import Union
 import datetime as dt
-from Tool.DataBaseTool import DataBaseTool, DB_NAME
+from Tool.DataBaseTool import DataBaseTool, DB_NAME;
 
 db = DataBaseTool(DB_NAME)   # 先建立一個共用實例
 

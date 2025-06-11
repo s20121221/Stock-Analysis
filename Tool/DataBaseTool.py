@@ -3,7 +3,7 @@ from typing import List, Union, Any, Optional, Tuple, Dict
 from pathlib import Path
 from contextlib import closing
 
-
+DB_NAME = "stock.db"
 class DataBaseTool:
 
     def __init__(self, db_path: Union[str, Path] = "stock.db") -> None:

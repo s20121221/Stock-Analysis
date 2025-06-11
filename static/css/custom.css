@@ -20,13 +20,6 @@ body {
   /* 背景色 */
 }
 
-.grid-row-Backtesting {
-  display: grid;
-  grid-template-rows: 1fr 2fr;
-  background: #dedede6f;
-  height: 100%;
-}
-
 .grid-row-Backtesting .item {
   background-color: white;
   display: flex;
