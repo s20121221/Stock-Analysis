@@ -22,3 +22,4 @@ df = pd.DataFrame(data=json_data['data'],
 print(tabulate(df.tail(), headers='keys', tablefmt='pretty', showindex=False))
 print('hello')
 print('haha')
+   
