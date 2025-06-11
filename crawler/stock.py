@@ -137,7 +137,7 @@ def update_stock_data(stock_id: str, days: int = 30) -> None:
     print(f"[Info]. 完成 {stock_id} 更新\n")
 
 # 呼叫此函示 ---- > app.py
-def run_stock_crawler(stock_list, days=60):
+def run_stock_crawler(stock_list, days=365*2):
     for stock_id in stock_list:
         update_stock_data(stock_id, days)
 # 測試用
