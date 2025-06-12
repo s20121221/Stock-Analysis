@@ -4,7 +4,9 @@ import threading
 import datetime as dt
 from flask import Blueprint, render_template, request, jsonify
 from LSTM.Stock_LSTM_Code import StockPredictor
+from LSTM.Stock_LSTM_Code import StockPredictor
 from flask import flash
+from crawler.stock import run_stock_crawler
 
 Backtesting_bp = Blueprint(
     'Backtesting',
@@ -31,6 +33,7 @@ def background_train(task_id, predictor, total_epochs):
 @Backtesting_bp.route('/train', methods=['POST'])
 def train():
     code = request.json.get('stockCode', '2330')
+    run_stock_crawler([code], 365*2)
     # 建立 Predictor
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     DB_PATH = os.path.join(BASE_DIR,'..',  '..', 'db', 'stock.db')

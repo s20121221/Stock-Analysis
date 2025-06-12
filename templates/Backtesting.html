@@ -1,29 +1,22 @@
-
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="content">
   <div class="grid-row-Backtesting">
     <div class="item item1">
       <form class="w-50" method="POST" action="{{ url_for('Backtesting.index') }}">
-        <!-- 股票代碼 -->
+        <!-- 股票代碼（文字輸入框） -->
         <div class="row mb-3 align-items-center">
           <label for="stockCode" class="col-sm-4 col-form-label">股票代碼</label>
           <div class="col-sm-8">
-            <select class="form-select" id="stockCode" name="stockCode">
-              {% for code in ['2317','2603','2882','2330'] %}
-              <option value="{{ code }}"
-                {% if request.form.stockCode==code or (not request.form.stockCode and code=='2330') %}selected{% endif %}
-              >{{ code }}</option>
-              {% endfor %}
-            </select>
+            <input type="text" id="stockCode" name="stockCode" class="form-control" placeholder="請輸入股票代碼"
+              value="{{ request.form.stockCode or '2330' }}" />
           </div>
         </div>
 
         <!-- 回測期間 -->
-         <div class="mb-3">
-          <label for="period" class="form-label">回測日期(預測指定日期格日的收盤價)</label>
+        <div class="mb-3">
+          <label for="period" class="form-label">回測日期(預測隔日的收盤價)</label>
           <input type="date" class="form-control" id="period" name="period" required
-                 value="{{ request.form.period or '' }}" />
+            value="{{ request.form.period or '' }}" />
         </div>
 
         <div class="d-flex justify-content-center gap-3">
@@ -35,9 +28,11 @@
 
         <!-- 進度條 -->
         <div class="mt-3 mb-0">
-          <div id="trainProgress" class="progress w-100" style="height: 25px; display: none;">
+          <div id="trainProgress" class="progress w-100" style="height: 25px; display: none">
             <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                 style="width: 0%;">0%</div>
+              style="width: 0%">
+              0%
+            </div>
           </div>
         </div>
       </form>
@@ -46,9 +41,18 @@
       {% if next_date and prediction %}
       <div class="mt-4 alert alert-info">
         <h5>預測結果</h5>
-        <p>股票代碼：<strong>{{ request.form.stockCode }}</strong></p>
-        <p>下一個交易日：<strong>{{ next_date }}</strong></p>
-        <p>預測收盤價：<strong>{{ prediction }}</strong></p>
+        <p>
+          股票代碼：
+          <strong>{{ request.form.stockCode }}</strong>
+        </p>
+        <p>
+          下一個交易日：
+          <strong>{{ next_date }}</strong>
+        </p>
+        <p>
+          預測收盤價：
+          <strong>{{ prediction }}</strong>
+        </p>
       </div>
       {% endif %}
     </div>
@@ -56,82 +60,82 @@
 </div>
 
 <script>
-document.getElementById('trainBtn').addEventListener('click', function(){
-  const form = document.getElementById('backtestForm');
-  const url = "{{ url_for('Backtesting.train') }}";  // 你的 AJAX 路由
+  document.getElementById('trainBtn').addEventListener('click', function () {
+    const form = document.getElementById('backtestForm');
+    const url = "{{ url_for('Backtesting.train') }}"; // 你的 AJAX 路由
 
-  const data = new FormData(form);
-  // 顯示進度條
-  document.getElementById('trainProgress').style.display = 'block';
+    const data = new FormData(form);
+    // 顯示進度條
+    document.getElementById('trainProgress').style.display = 'block';
 
-  fetch(url, {
-    method: 'POST',
-    body: data,
-    headers: {
-      'X-Requested-With': 'XMLHttpRequest'
-    }
-  })
-  .then(res => res.json())
-  .then(json => {
-    // 假設後端回 { progress: 100, message: '完成' }
-    document.getElementById('progressBar').style.width = json.progress + '%';
-    document.getElementById('progressBar').textContent = json.progress + '%';
-    if (json.progress >= 100) {
-      // 完成後隱藏或顯示訊息
-      alert(json.message);
-    }
-  })
-  .catch(err => {
-    console.error(err);
-    alert('訓練發生錯誤');
+    fetch(url, {
+      method: 'POST',
+      body: data,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        // 假設後端回 { progress: 100, message: '完成' }
+        document.getElementById('progressBar').style.width = json.progress + '%';
+        document.getElementById('progressBar').textContent = json.progress + '%';
+        if (json.progress >= 100) {
+          // 完成後隱藏或顯示訊息
+          alert(json.message);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        alert('訓練發生錯誤');
+      });
   });
-});
 </script>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  // 日期上下限設定
-  const dateInput = document.getElementById('period');
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  dateInput.max = `${yyyy}-${mm}-${dd}`;
-  const twoYearsAgo = new Date(today);
-  twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
-  const yy = twoYearsAgo.getFullYear();
-  const mm2 = String(twoYearsAgo.getMonth() + 1).padStart(2, '0');
-  const dd2 = String(twoYearsAgo.getDate()).padStart(2, '0');
-  dateInput.min = `${yy}-${mm2}-${dd2}`;
+  document.addEventListener('DOMContentLoaded', () => {
+    // 日期上下限設定
+    const dateInput = document.getElementById('period');
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    dateInput.max = `${yyyy}-${mm}-${dd}`;
+    const twoYearsAgo = new Date(today);
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+    const yy = twoYearsAgo.getFullYear();
+    const mm2 = String(twoYearsAgo.getMonth() + 1).padStart(2, '0');
+    const dd2 = String(twoYearsAgo.getDate()).padStart(2, '0');
+    dateInput.min = `${yy}-${mm2}-${dd2}`;
 
-  // 訓練按鈕事件
-  const trainBtn = document.getElementById('trainBtn');
-  const progWrap = document.getElementById('trainProgress');
-  const bar = document.getElementById('progressBar');
+    // 訓練按鈕事件
+    const trainBtn = document.getElementById('trainBtn');
+    const progWrap = document.getElementById('trainProgress');
+    const bar = document.getElementById('progressBar');
 
-  trainBtn.addEventListener('click', async () => {
-    const code = document.getElementById('stockCode').value;
-    progWrap.style.display = 'block';
-    bar.style.width = '0%';
-    bar.textContent = '0%';
+    trainBtn.addEventListener('click', async () => {
+      const code = document.getElementById('stockCode').value;
+      progWrap.style.display = 'block';
+      bar.style.width = '0%';
+      bar.textContent = '0%';
 
-    // 發送訓練請求
-    const resp = await fetch("{{ url_for('Backtesting.train') }}", {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stockCode: code })
+      // 發送訓練請求
+      const resp = await fetch("{{ url_for('Backtesting.train') }}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stockCode: code }),
+      });
+      const { task_id } = await resp.json();
+
+      // 輪詢進度
+      const interval = setInterval(async () => {
+        const res2 = await fetch(`{{ url_for('Backtesting.progress', task_id='') }}/${task_id}`);
+        const { progress } = await res2.json();
+        bar.style.width = progress + '%';
+        bar.textContent = progress + '%';
+        if (progress >= 100) clearInterval(interval);
+      }, 500);
     });
-    const { task_id } = await resp.json();
-
-    // 輪詢進度
-    const interval = setInterval(async () => {
-      const res2 = await fetch(`{{ url_for('Backtesting.progress', task_id='') }}/${task_id}`);
-      const { progress } = await res2.json();
-      bar.style.width = progress + '%';
-      bar.textContent = progress + '%';
-      if (progress >= 100) clearInterval(interval);
-    }, 500);
   });
-});
 </script>
 {% endblock %}
