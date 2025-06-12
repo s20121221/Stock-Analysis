@@ -6,7 +6,7 @@
 
 <label for="symbol">股票代碼：</label>
 <select id="symbol" class="form-select d-inline-block w-auto">
-  <option value="TEST">TEST</option>
+  
   <!-- 之後可再新增真實股票代碼 -->
 </select>
 <button id="btnDraw" class="btn btn-primary ms-2">繪圖</button>
@@ -19,4 +19,4 @@
 {% block extra_scripts %}
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script src="{{ url_for('static', filename='js/trendchart.js') }}"></script>
-{% endblock %}    
+{% endblock %} 
