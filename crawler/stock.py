@@ -5,7 +5,7 @@ import datetime
 from typing import List, Dict, Any
 from bs4 import BeautifulSoup
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from Tool.DataBaseTool import DataBaseTool  # 引入自製資料庫操作工具
+from Tool.DataBaseTool import DataBaseTool 
 
 db = DataBaseTool("db/stock.db")
 
