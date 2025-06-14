@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 from Tool.DataBaseTool import DataBaseTool
+from crawler.stock import run_stock_crawler
 
 TrendChart_bp = Blueprint(
     'TrendChart',
@@ -21,6 +22,14 @@ def api_symbols():
     symbols = [row["stock_id"] for row in results]
     return jsonify(symbols)
 
+@TrendChart_bp.route('/api/crawl', methods=['POST'])
+def crawl_stock():
+    code = request.json.get("symbol")
+    if not code:
+        return jsonify({"error": "缺少 symbol"}), 400
+
+    run_stock_crawler([code], 365 * 2)
+    return jsonify({"message": "爬蟲完成"})
 
 @TrendChart_bp.route('/api/ohlc')
 def api_ohlc():
